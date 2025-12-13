@@ -5,21 +5,12 @@ const Header = () => {
     const [scrolled, setScrolled] = useState(false);
 
     useEffect(() => {
-        const handleMouseMove = (e) => {
-            setMousePosition({
-                x: (e.clientX / window.innerWidth) * 20 - 10,
-                y: (e.clientY / window.innerHeight) * 20 - 10,
-            });
-        };
-
         const handleScroll = () => {
             setScrolled(window.scrollY > 50);
         };
 
-        window.addEventListener('mousemove', handleMouseMove);
         window.addEventListener('scroll', handleScroll);
         return () => {
-            window.removeEventListener('mousemove', handleMouseMove);
             window.removeEventListener('scroll', handleScroll);
         };
     }, []);

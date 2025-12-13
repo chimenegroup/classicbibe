@@ -13,7 +13,7 @@ const NotFound = () => {
         }, 3000);
 
         // Mouse movement
-        const handleMouseMove = (e) => {
+        const handleMouseMove = (e: MouseEvent) => {
             setMousePosition({
                 x: (e.clientX / window.innerWidth) * 20 - 10,
                 y: (e.clientY / window.innerHeight) * 20 - 10,
