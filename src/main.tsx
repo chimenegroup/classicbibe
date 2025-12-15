@@ -17,11 +17,11 @@ const router = createBrowserRouter([
                 path: '/',
                 element: <Home/>
             },
-            {
-                path: '/privacy-policy',
-                element: <PrivacyPolicy/>
-            }
         ]
+    },
+    {
+        path: 'classicbibe/privacy',
+        element: <PrivacyPolicy/>
     },
     {
         path: '*',

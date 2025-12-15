@@ -12,7 +12,7 @@ const Footer = () => {
         ],
         legal: [
             { name: 'Legal Notice', href: '#mentions' },
-            { name: 'Privacy Policy', href: '#privacy' },
+            { name: 'Privacy Policy', href: '/classicbibe/privacy' },
             { name: 'Terms of Use', href: '#cgu' },
             { name: 'Cookies', href: '#cookies' }
         ],
