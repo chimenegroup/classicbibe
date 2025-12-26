@@ -1,5 +1,8 @@
 import {useState, useEffect, type JSX} from 'react';
 import { Gamepad2, Code, Palette, Sparkles, Github, Linkedin, Mail, ChevronDown } from 'lucide-react';
+import Google from '../assets/google.svg?react';
+import Amazon from '../assets/amazon.svg?react';
+import Huawei from '../assets/huawei.svg?react';
 
 type StoreType = 'steam' | 'playstore' | 'huawei' | 'appstore' | 'amazon';
 
@@ -51,7 +54,7 @@ const Home = () => {
             image: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=800&h=600&fit=crop",
             description: "An infinite multiplayer arcade dodge & survive game! Test your reflexes, compete with friends, and climb the global leaderboard.",
             color: "from-blue-500 to-cyan-500",
-            stores: ["playstore", "amazon"],
+            stores: ["playstore", "amazon", "huawei"],
         },
     ];
 
@@ -63,18 +66,11 @@ const Home = () => {
         ),
         playstore: (
             // Google Play Store SVG
-            <svg className="w-5 h-5" viewBox="0 0 512 512" fill="currentColor">
-                <path d="M325.3 234.3L104.6 13.6c-8.5-8.5-22.3-8.5-30.8 0-4.1 4.1-6.4 9.6-6.4 15.4v454c0 5.8 2.3 11.3 6.4 15.4 4.2 4.2 9.8 6.4 15.4 6.4 5.6 0 11.2-2.1 15.4-6.4l220.7-220.7c8.5-8.5 8.5-22.3 0-30.8z" />
-                <path d="M371.6 278.2l-46.3-46.3-52.7 52.7 46.3 46.3c8.5 8.5 22.3 8.5 30.8 0l21.9-21.9c8.5-8.5 8.5-22.3 0-30.8z" />
-                <path d="M104.6 498.4c-4.2 4.2-9.8 6.4-15.4 6.4-5.6 0-11.2-2.1-15.4-6.4-4.1-4.1-6.4-9.6-6.4-15.4V29c0-5.8 2.3-11.3 6.4-15.4 8.5-8.5 22.3-8.5 30.8 0l220.7 220.7c8.5 8.5 8.5 22.3 0 30.8L104.6 498.4z" opacity=".2"/>
-            </svg>
+            <Google className="w-5 h-5" fill="#fff"/>
         ),
         huawei: (
             // Huawei AppGallery SVG
-            <svg className="w-5 h-5" viewBox="0 0 48 48" fill="currentColor">
-                <rect x="4" y="8" width="40" height="32" rx="8" fill="#E2231A"/>
-                <path d="M24 18c-3.3 0-6 2.7-6 6 0 2.2 1.2 4.1 3 5.2V32a3 3 0 006 0v-2.8c1.8-1.1 3-3 3-5.2 0-3.3-2.7-6-6-6zm0 2a4 4 0 014 4c0 1.5-.8 2.8-2 3.5V32a2 2 0 01-4 0v-4.5A3.98 3.98 0 0120 24a4 4 0 014-4z" fill="#fff"/>
-            </svg>
+            <Huawei className="w-5 h-5" fill="#fff"/>
         ),
         appstore: (
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
@@ -83,12 +79,13 @@ const Home = () => {
         ),
         amazon: (
             // Amazon Appstore SVG
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M.045 18.02c.072-.116.187-.124.348-.022 3.636 2.11 7.594 3.166 11.87 3.166 2.852 0 5.668-.533 8.447-1.595l.315-.14c.138-.06.234-.1.293-.13.226-.088.39-.046.525.13.12.174.09.336-.12.48-.256.19-.6.41-1.006.654-1.244.743-2.64 1.316-4.185 1.726-1.547.41-3.076.61-4.602.61-3.15 0-6.17-.87-9.05-2.606-1.006-.6-1.954-1.286-2.85-2.047-.11-.095-.177-.175-.2-.24-.03-.096.007-.18.11-.27l.105-.096zm23.71-5.42c-.18-.17-.336-.22-.47-.15-.12.07-.18.21-.18.42v.14l.03 1.95c-1.036 1.29-2.384 2.291-4.048 3.006-1.665.72-3.366 1.08-5.104 1.08-2.44 0-4.665-.69-6.69-2.07-1.665-1.14-2.91-2.61-3.75-4.41l-.03-.06c-.15-.33-.075-.54.165-.63.12-.05.27-.03.42.12l.075.09c1.456 2.25 3.316 3.81 5.58 4.68 2.25.87 4.59 1.05 7.02.54 2.43-.51 4.47-1.65 6.12-3.42.165-.18.27-.33.315-.45.03-.09.03-.21 0-.36l-.03-.18c-.015-.12-.015-.21 0-.27.03-.18.165-.27.405-.27.165 0 .315.09.45.27.12.165.18.36.18.585v.075l-.015.06v.03c0 .54-.21 1.11-.63 1.71zm-1.8-3.06c-.195-.705-.765-1.38-1.71-2.025-.945-.645-2.115-.99-3.51-1.035l-.135-.015h-.48c-1.92 0-3.555.555-4.905 1.665-1.35 1.11-2.04 2.37-2.07 3.78l-.015.27v.27l.015.27c.015.21.06.405.135.585.015.06.06.12.135.18.09.075.18.105.27.09.09 0 .165-.045.225-.135l.075-.135c.015-.075.03-.135.045-.18.345-1.29 1.29-2.28 2.835-2.97 1.545-.69 3.195-.855 4.95-.495 1.095.225 2.01.69 2.745 1.395.705.66 1.11 1.41 1.215 2.25.015.12.075.195.18.225.105.015.21-.015.315-.105.09-.09.135-.195.135-.315v-.09c0-.63-.135-1.29-.405-1.98l-.045-.105z" fill="#fff"/>
-                <path d="M14.13 14.66c-.69-.84-1.665-1.26-2.925-1.26-1.08 0-1.95.315-2.61.945s-.99 1.44-.99 2.43c0 1.02.345 1.845 1.035 2.475.69.63 1.59.945 2.7.945 1.23 0 2.22-.42 2.97-1.26.18-.21.27-.435.27-.675 0-.225-.075-.42-.225-.585-.135-.165-.315-.255-.54-.27-.21-.015-.405.045-.585.18-.69.525-1.455.795-2.295.795-.66 0-1.215-.18-1.665-.54-.45-.36-.705-.825-.765-1.395h5.46c.21 0 .39-.075.54-.225.15-.15.225-.33.225-.54v-.195c0-.63-.195-1.23-.585-1.8l-.015-.03zm-5.49.945c.12-.465.36-.84.72-1.125.36-.285.78-.435 1.26-.435.525 0 .96.15 1.305.45.345.3.555.675.63 1.125l-3.915-.015z" fill="#fff"/>
-            </svg>
+            <Amazon className="w-5 h-5" fill="#fff"/>
         ),
     };
+
+    const handleContact = () => {
+        window.location.href = "mailto:chimene.info@gmail.com";
+    }
 
     return (
         <div className="min-h-screen bg-black text-white overflow-hidden">
@@ -159,7 +156,7 @@ const Home = () => {
                             <div className="absolute inset-0 bg-gradient-to-r from-pink-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         </button>
 
-                        <button className="px-6 sm:px-8 py-3 sm:py-4 border-2 border-cyan-500 rounded-full font-bold text-base sm:text-lg hover:bg-cyan-500/20 transition-all duration-300 hover:scale-110 hover:shadow-2xl hover:shadow-cyan-500/50">
+                        <button onClick={handleContact} className="px-6 sm:px-8 py-3 sm:py-4 border-2 border-cyan-500 rounded-full font-bold text-base sm:text-lg hover:bg-cyan-500/20 transition-all duration-300 hover:scale-110 hover:shadow-2xl hover:shadow-cyan-500/50">
                             Contact me
                         </button>
                     </div>
@@ -171,7 +168,7 @@ const Home = () => {
                         <a href="#" className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-sm hover:bg-cyan-500 transition-all duration-300 hover:scale-125">
                             <Linkedin className="w-6 h-6" />
                         </a>
-                        <a href="#" className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-sm hover:bg-pink-500 transition-all duration-300 hover:scale-125">
+                        <a href="mailto:chimene.info@gmail.com" className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-sm hover:bg-pink-500 transition-all duration-300 hover:scale-125">
                             <Mail className="w-6 h-6" />
                         </a>
                     </div>
@@ -273,7 +270,7 @@ const Home = () => {
                         <p className="text-lg sm:text-xl text-gray-300 mb-8 sm:mb-12 px-4">
                             Let's bring your game vision to life.
                         </p>
-                        <button className="px-8 sm:px-12 py-4 sm:py-5 bg-white text-black rounded-full font-bold text-lg sm:text-xl hover:scale-110 transition-all duration-300 hover:shadow-2xl hover:shadow-white/50">
+                        <button onClick={handleContact} className="px-8 sm:px-12 py-4 sm:py-5 bg-white text-black rounded-full font-bold text-lg sm:text-xl hover:scale-110 transition-all duration-300 hover:shadow-2xl hover:shadow-white/50">
                             Start a project
                         </button>
                     </div>
