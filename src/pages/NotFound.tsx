@@ -1,172 +1,157 @@
-import { useState, useEffect } from 'react';
-import { Home, Search, Gamepad2, AlertCircle, ArrowLeft, Sparkles } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Home, ArrowLeft, Terminal, Gamepad2, Layers, ShieldAlert, Cpu } from 'lucide-react';
+import { SEO } from '../components/seo/SEO';
 
-const NotFound = () => {
+const NotFound: React.FC = () => {
     const [glitchActive, setGlitchActive] = useState(false);
-    const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
+    // Effet de glitch par intermittence façon écran de terminal corrompu
     useEffect(() => {
-        // Glitch effect
         const glitchInterval = setInterval(() => {
             setGlitchActive(true);
-            setTimeout(() => setGlitchActive(false), 200);
-        }, 3000);
+            setTimeout(() => setGlitchActive(false), 250);
+        }, 4000);
 
-        // Mouse movement
-        const handleMouseMove = (e: MouseEvent) => {
-            setMousePosition({
-                x: (e.clientX / window.innerWidth) * 20 - 10,
-                y: (e.clientY / window.innerHeight) * 20 - 10,
-            });
-        };
-
-        window.addEventListener('mousemove', handleMouseMove);
-
-        return () => {
-            clearInterval(glitchInterval);
-            window.removeEventListener('mousemove', handleMouseMove);
-        };
+        return () => clearInterval(glitchInterval);
     }, []);
 
     return (
-        <div className="min-h-screen bg-black text-white overflow-hidden relative flex items-center justify-center">
-            {/* Animated Background */}
-            <div className="fixed inset-0 overflow-hidden pointer-events-none">
-                {/* Gradient animé qui suit la souris */}
-                <div
-                    className="absolute inset-0 opacity-40"
-                    style={{
-                        background: 'radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.4) 0%, transparent 50%)',
-                        transform: `translate(${mousePosition.x}px, ${mousePosition.y}px)`,
-                        transition: 'transform 0.3s ease-out'
-                    }}
-                />
+        <div className="min-h-screen bg-studio-bg text-studio-text flex items-center justify-center px-6 py-24 relative overflow-hidden">
 
-                {/* Vagues animées */}
-                <div className="absolute inset-0">
-                    <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-purple-900/30 via-transparent to-cyan-900/30 animate-pulse"
-                         style={{ animationDuration: '8s' }} />
-                    <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-tl from-pink-900/20 via-transparent to-purple-900/20 animate-pulse"
-                         style={{ animationDuration: '6s', animationDelay: '1s' }} />
-                </div>
+            {/* Configuration SEO */}
+            <SEO
+                title="Erreur 404 | Page Introuvable"
+                description="La page que vous recherchez semble introuvable dans l'écosystème de Chimene Studio."
+            />
 
-                {/* Grille subtile */}
-                <div className="absolute inset-0 opacity-10"
-                     style={{
-                         backgroundImage: 'linear-gradient(rgba(139, 92, 246, 0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(139, 92, 246, 0.3) 1px, transparent 1px)',
-                         backgroundSize: '100px 100px'
-                     }}
-                />
+            {/* Arrière-plan cinématique aux couleurs du Studio */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-studio-red/10 rounded-full blur-[160px] pointer-events-none" />
+            <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-studio-blue/10 rounded-full blur-[140px] pointer-events-none" />
 
-                {/* Orbes flottants */}
-                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse"
-                     style={{ animationDuration: '7s' }} />
-                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"
-                     style={{ animationDuration: '9s', animationDelay: '2s' }} />
-                <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-pink-500/20 rounded-full blur-3xl animate-pulse"
-                     style={{ animationDuration: '6s', animationDelay: '1s' }} />
-            </div>
+            {/* Trame géométrique de fond */}
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none" />
 
-            {/* Content */}
-            <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div className="relative z-10 max-w-4xl mx-auto text-center space-y-10">
 
-                {/* Floating Gamepad Icon */}
-                <div className="mb-8 flex justify-center">
-                    <div className="relative">
-                        <Gamepad2 className="w-24 h-24 sm:w-32 sm:h-32 text-purple-500 animate-bounce" />
-                        <AlertCircle className="w-10 h-10 sm:w-12 sm:h-12 text-red-500 absolute -top-2 -right-2 animate-pulse" />
-                        <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-cyan-400 absolute -bottom-2 -left-2 animate-pulse" />
-                    </div>
-                </div>
+                {/* Badge d'erreur système */}
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl bg-studio-card border border-white/10 text-xs font-mono uppercase tracking-widest text-studio-muted shadow-lg"
+                >
+                    <ShieldAlert className="w-4 h-4 text-studio-red animate-pulse" />
+                    <span className="text-white">SYSTEM ERROR 404</span> — RESOURCE MISSING
+                </motion.div>
 
-                {/* 404 Title with Glitch Effect */}
-                <div className="mb-6 sm:mb-8">
-                    <h1
-                        className={`text-8xl sm:text-9xl md:text-[12rem] font-black mb-4 transition-all duration-100 ${
-                            glitchActive ? 'text-red-500 transform translate-x-2' : ''
+                {/* Titre 404 avec effet Glitch */}
+                <div className="space-y-4">
+                    <motion.h1
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.5, delay: 0.1 }}
+                        className={`text-8xl sm:text-9xl md:text-[11rem] font-black tracking-tighter uppercase font-sans transition-all duration-75 ${
+                            glitchActive ? 'text-studio-red translate-x-1 filter blur-[0.5px]' : 'text-white'
                         }`}
                         style={{
                             textShadow: glitchActive
-                                ? '2px 2px 0px #00ffff, -2px -2px 0px #ff00ff'
-                                : '4px 4px 0px rgba(139, 92, 246, 0.5)'
+                                ? '3px 3px 0px #0A3871, -3px -3px 0px #A83B3B'
+                                : '4px 4px 0px rgba(168, 59, 59, 0.3)'
                         }}
                     >
-            <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-cyan-400 bg-clip-text text-transparent">
-              404
-            </span>
-                    </h1>
-                    <div className="h-2 w-32 sm:w-48 mx-auto bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 rounded-full animate-pulse" />
+                        404
+                    </motion.h1>
+                    <div className="h-1.5 w-36 mx-auto bg-gradient-to-r from-studio-blue via-white to-studio-red rounded-full" />
                 </div>
 
-                {/* Error Messages */}
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6">
-          <span className="bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
-            Game Over!
-          </span>
-                </h2>
+                {/* Messages d'erreur style Studio */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                    className="space-y-3 max-w-xl mx-auto"
+                >
+                    <h2 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tight">
+                        HORS ZONE DE CONTRÔLE
+                    </h2>
+                    <p className="text-studio-muted text-sm sm:text-base leading-relaxed">
+                        La ressource ou la page que vous tentez d'atteindre n'existe pas ou a été déplacée dans le vide numérique.
+                    </p>
+                </motion.div>
 
-                <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-4 sm:mb-6 max-w-2xl mx-auto">
-                    Oops! Looks like you found a secret level... or a page that doesn't exist.
-                </p>
-
-                <p className="text-base sm:text-lg text-gray-400 mb-8 sm:mb-12 max-w-xl mx-auto">
-                    The page you're looking for vanished into the digital void. Maybe it was eaten by a final boss? 🎮
-                </p>
-
-                {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center mb-12 sm:mb-16">
-                    <a
-                        href="/"
-                        className="group relative px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full font-bold text-lg overflow-hidden transition-all duration-300 hover:scale-110 hover:shadow-2xl hover:shadow-purple-500/50 flex items-center gap-3 w-full sm:w-auto justify-center"
+                {/* Boutons d'action principaux */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                    className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2"
+                >
+                    <Link
+                        to="/"
+                        className="w-full sm:w-auto px-8 py-4 rounded-xl bg-studio-red hover:bg-studio-red-hover text-white font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-3 transition-all duration-300 shadow-xl shadow-studio-red/25 hover:scale-105 border border-white/10"
                     >
-                        <Home className="w-5 h-5" />
-                        <span className="relative z-10">Back to Home</span>
-                        <div className="absolute inset-0 bg-gradient-to-r from-pink-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    </a>
+                        <Home className="w-4 h-4" />
+                        <span>Retour à l'accueil</span>
+                    </Link>
 
                     <button
                         onClick={() => window.history.back()}
-                        className="px-8 py-4 border-2 border-cyan-500 rounded-full font-bold text-lg hover:bg-cyan-500/20 transition-all duration-300 hover:scale-110 hover:shadow-2xl hover:shadow-cyan-500/50 flex items-center gap-3 w-full sm:w-auto justify-center"
+                        className="w-full sm:w-auto px-8 py-4 rounded-xl bg-studio-card hover:bg-white/5 text-studio-text hover:text-white font-bold text-xs uppercase tracking-widest border border-white/10 flex items-center justify-center gap-3 transition-all duration-300 hover:scale-105 shadow-lg"
                     >
-                        <ArrowLeft className="w-5 h-5" />
-                        Previous page
+                        <ArrowLeft className="w-4 h-4 text-studio-muted" />
+                        <span>Page précédente</span>
                     </button>
-                </div>
+                </motion.div>
 
-                {/* Error Code Box */}
-                <div className="inline-block p-6 sm:p-8 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 hover:border-purple-500/50 transition-all duration-300">
-                    <div className="flex items-center gap-3 sm:gap-4 text-left">
-                        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                            <Search className="w-6 h-6 sm:w-8 sm:h-8" />
+                {/* Boîte d'informations techniques (Code d'erreur) */}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.4 }}
+                    className="inline-block p-6 bg-studio-card/80 backdrop-blur-md rounded-2xl border border-white/10 shadow-2xl max-w-md w-full"
+                >
+                    <div className="flex items-center gap-4 text-left">
+                        <div className="w-12 h-12 rounded-xl bg-studio-blue/20 border border-studio-blue/30 flex items-center justify-center flex-shrink-0 text-studio-blue">
+                            <Terminal className="w-6 h-6" />
                         </div>
-                        <div>
-                            <p className="text-white font-bold text-base sm:text-lg mb-1">Error code: 404</p>
-                            <p className="text-gray-400 text-xs sm:text-sm">Page Not Found - Resource not found</p>
+                        <div className="font-mono">
+                            <p className="text-white font-bold text-xs uppercase tracking-wider">Status: 404_NOT_FOUND</p>
+                            <p className="text-studio-muted text-[11px] pt-0.5">Target route could not be resolved by router.</p>
                         </div>
                     </div>
-                </div>
+                </motion.div>
 
-                {/* Fun Suggestions */}
-                <div className="mt-12 sm:mt-16 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 max-w-3xl mx-auto">
+                {/* Raccourcis de navigation rapide */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.5 }}
+                    className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto pt-6"
+                >
                     {[
-                        { title: "Projects", desc: "See our games", icon: Gamepad2, href: "/#projets" },
-                        { title: "Skills", desc: "Our expertise", icon: Sparkles, href: "/#compétences" },
-                        { title: "Contact", desc: "Contact us", icon: Home, href: "/#contact" }
+                        { title: "Projets", desc: "Explorer le showroom", icon: Gamepad2, href: "/#projects" },
+                        { title: "À Propos", desc: "L'ADN du studio", icon: Cpu, href: "/#about" },
+                        { title: "Accueil", desc: "Page principale", icon: Layers, href: "/" }
                     ].map((item, i) => (
                         <a
                             key={i}
                             href={item.href}
-                            className="group p-6 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 hover:border-white/30 transition-all duration-300 hover:scale-105 hover:bg-white/10"
+                            className="group p-5 bg-studio-card rounded-xl border border-white/10 hover:border-studio-red/50 transition-all duration-300 hover:scale-105 text-center space-y-2 shadow-lg"
                         >
-                            <item.icon className="w-8 h-8 text-purple-400 mb-3 group-hover:text-pink-400 transition-colors duration-300 mx-auto" />
-                            <h3 className="text-white font-bold mb-1">{item.title}</h3>
-                            <p className="text-gray-400 text-sm">{item.desc}</p>
+                            <item.icon className="w-5 h-5 text-studio-muted group-hover:text-studio-red transition-colors mx-auto" />
+                            <div>
+                                <h3 className="text-white font-bold text-xs uppercase tracking-wider">{item.title}</h3>
+                                <p className="text-studio-muted text-[11px] pt-1">{item.desc}</p>
+                            </div>
                         </a>
                     ))}
-                </div>
+                </motion.div>
+
             </div>
         </div>
     );
-}
+};
 
 export default NotFound;

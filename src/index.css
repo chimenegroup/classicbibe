@@ -1,1 +1,48 @@
 @import "tailwindcss";
+
+/* 1. Configuration du Thème (Design System) */
+@theme {
+    --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+
+    /* Palette Chimene Studio */
+    --color-studio-bg: #0B111E;       /* Fond sombre principal */
+    --color-studio-card: #131C2E;     /* Fond des cartes */
+    --color-studio-blue: #0A3871;     /* Bleu du logo */
+    --color-studio-red: #A83B3B;      /* Rouge accent */
+    --color-studio-red-hover: #C84B4B;/* Rouge au survol */
+    --color-studio-text: #F1F5F9;     /* Texte principal */
+    --color-studio-muted: #94A3B8;    /* Texte secondaire */
+}
+
+/* 2. Style global du Body */
+body {
+    background-color: var(--color-studio-bg);
+    color: var(--color-studio-text);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+/* 3. Utilitaires personnalisés pour l'effet de verre (Glassmorphism) */
+@layer utilities {
+    /* Effet verre standard */
+    .glass-card {
+        background-color: rgba(255, 255, 255, 0.04);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Effet verre interactif au survol */
+    .glass-card-hover {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .glass-card-hover:hover {
+        background-color: rgba(255, 255, 255, 0.07);
+        border-color: rgba(168, 59, 59, 0.4); /* Bordure rouge accent au survol */
+        box-shadow: 0 10px 30px -10px rgba(10, 56, 113, 0.3);
+    }
+}
