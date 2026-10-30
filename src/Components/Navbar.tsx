@@ -1,130 +1,216 @@
-import React, { useState, useEffect } from 'react';
-import { Menu, X, Gamepad2, LayoutGrid, Info, Mail } from 'lucide-react';
-import { Button } from './ui/Button';
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { getProjectById } from '../data/projects';
+import { useSectionScroll } from './utils/useSectionScroll';
+
+/**
+ * Navigation principale (monté une seule fois dans App.tsx).
+ * - Transparente sur le haut de page, fond plein (sans blur, léger pour les vieux appareils) après scroll.
+ * - Se masque en descendant, réapparaît en remontant.
+ * - Mobile : menu plein écran, scroll bloqué, fermeture par Échap.
+ */
+
+const NAV_LINKS = [
+    { label: 'Games', id: 'projects' },
+    { label: 'About', id: 'about' },
+    { label: 'Contact', id: 'contact' }, // pointe vers le footer
+];
+
+const STEAM_URL = getProjectById('classic-bibe')?.links.steam;
+const FLAGSHIP_PATH = '/project/classic-bibe';
 
 export const Navbar: React.FC = () => {
-    const [isScrolled, setIsScrolled] = useState(false);
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const { pathname } = useLocation();
+    const [scrolled, setScrolled] = useState(false);
+    const [hidden, setHidden] = useState(false);
+    const [open, setOpen] = useState(false);
+    const [logoFailed, setLogoFailed] = useState(false);
 
-    // Détection du scroll pour appliquer le fond semi-transparent et l'effet de profondeur
+    // Scroll : un seul écouteur passif, throttlé via requestAnimationFrame
     useEffect(() => {
-        const handleScroll = () => {
-            if (window.scrollY > 20) {
-                setIsScrolled(true);
-            } else {
-                setIsScrolled(false);
-            }
+        let lastY = window.scrollY;
+        let ticking = false;
+
+        const update = () => {
+            const y = window.scrollY;
+            const delta = y - lastY;
+            setScrolled(y > 8);
+            if (y < 80) setHidden(false);
+            else if (delta > 6) setHidden(true);
+            else if (delta < -6) setHidden(false);
+            if (Math.abs(delta) > 6) lastY = y;
+            ticking = false;
         };
 
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
+        const onScroll = () => {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(update);
+        };
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+        return () => window.removeEventListener('scroll', onScroll);
     }, []);
 
-    const navLinks = [
-        { name: 'Projets', href: '#projects', icon: <LayoutGrid className="w-4 h-4 text-studio-red" /> },
-        { name: 'À Propos', href: '#about', icon: <Info className="w-4 h-4 text-studio-blue" /> },
-        // { name: 'Contact', href: '#contact', icon: <Mail className="w-4 h-4 text-studio-muted" /> },
-    ];
+    // Menu mobile : Échap pour fermer + blocage du scroll de la page
+    useEffect(() => {
+        if (!open) return;
+        const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+        document.addEventListener('keydown', onKey);
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.removeEventListener('keydown', onKey);
+            document.body.style.overflow = prev;
+        };
+    }, [open]);
+
+    const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const scrollToSection = useSectionScroll();
+
+    const goToSection = (e: React.MouseEvent, id: string) => {
+        setOpen(false);
+        scrollToSection(e, id);
+    };
+
+    const goHome = (e: React.MouseEvent) => {
+        setOpen(false);
+        if (pathname === '/') {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: reduceMotion() ? 'auto' : 'smooth' });
+            window.history.replaceState(null, '', '/');
+        }
+    };
+
+    // Le bouton Steam concerne le jeu phare : on le masque sur la page d'un autre projet (ex. Orion PDF)
+    const showCta = Boolean(STEAM_URL) && !(pathname.startsWith('/project/') && pathname !== FLAGSHIP_PATH);
+
+    const barBackground = open
+        ? 'bg-transparent'
+        : scrolled
+            ? 'bg-studio-bg/95 border-b border-white/5'
+            : 'bg-gradient-to-b from-studio-bg/90 to-transparent';
+
+    const focusRing =
+        'focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white';
 
     return (
-        <header
-            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-                isScrolled
-                    ? 'bg-[#0B111E]/95 backdrop-blur-md border-b border-white/10 py-4 shadow-2xl shadow-black/60'
-                    : 'bg-gradient-to-b from-[#0B111E]/90 to-transparent py-6'
-            }`}
-        >
-            <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+        <header className="fixed inset-x-0 top-0 z-50">
+            <div
+                className={`${barBackground} ${hidden && !open ? '-translate-y-full' : 'translate-y-0'} transition-[transform,background-color] duration-300 motion-reduce:transition-none`}
+            >
+                <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 md:h-20 md:px-8">
+                    {/* Logo + liens (desktop) */}
+                    <div className="flex items-center gap-10">
+                        <Link to="/" onClick={goHome} className={`flex items-center gap-3 ${focusRing}`} aria-label="Chimene Studio, home">
+                            {logoFailed ? (
+                                <span className="flex h-9 w-9 items-center justify-center bg-studio-blue text-sm font-extrabold text-white">
+                                    CS
+                                </span>
+                            ) : (
+                                <img
+                                    src="/logo.jpg"
+                                    alt=""
+                                    width={36}
+                                    height={36}
+                                    className="h-9 w-9 object-cover"
+                                    onError={() => setLogoFailed(true)}
+                                />
+                            )}
+                            <span className="text-sm font-extrabold uppercase leading-none tracking-[0.2em] text-studio-text md:text-base">
+                                Chimene
+                                <span className="mt-1 block text-[10px] font-semibold tracking-[0.35em] text-studio-muted">
+                                    Studio
+                                </span>
+                            </span>
+                        </Link>
 
-                {/* LOGO STUDIO - Style Haute Fidélité */}
-                <a href="#" className="flex items-center gap-3 group">
-                    <div className="relative flex items-center justify-center w-11 h-11 rounded-xl bg-studio-card border border-white/10 overflow-hidden group-hover:border-studio-red transition-all duration-300 shadow-inner">
-                        <img
-                            src="/logo.jpg"
-                            alt="Chimene Studio Logo"
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            onError={(e) => {
-                                (e.target as HTMLElement).style.display = 'none';
-                            }}
-                        />
-                        <span className="absolute inset-0 flex items-center justify-center font-extrabold text-white text-lg tracking-wider bg-studio-blue/80">CS</span>
+                        <nav className="hidden items-center gap-8 md:flex" aria-label="Main">
+                            {NAV_LINKS.map((link) => (
+                                <Link
+                                    key={link.id}
+                                    to={`/#${link.id}`}
+                                    onClick={(e) => goToSection(e, link.id)}
+                                    className={`group relative py-2 text-xs font-bold uppercase tracking-[0.18em] text-studio-muted transition-colors hover:text-studio-text ${focusRing}`}
+                                >
+                                    {link.label}
+                                    <span className="absolute inset-x-0 bottom-0 h-0.5 origin-left scale-x-0 bg-studio-red transition-transform duration-300 group-hover:scale-x-100 motion-reduce:transition-none" />
+                                </Link>
+                            ))}
+                        </nav>
                     </div>
-                    <div className="flex flex-col">
-                        <span className="font-black text-white tracking-widest text-base md:text-lg leading-tight uppercase font-sans">
-                            CHIMENE<span className="text-studio-red">.</span>
-                        </span>
-                        <span className="text-[10px] font-bold tracking-[0.25em] text-studio-muted uppercase">
-                            STUDIO
-                        </span>
-                    </div>
-                </a>
 
-                {/* NAVIGATION DESKTOP - Style Épuré & Racé */}
-                <nav className="hidden md:flex items-center gap-1 bg-studio-card/80 border border-white/10 px-3 py-1.5 rounded-2xl backdrop-blur-xl shadow-lg">
-                    {navLinks.map((link) => (
-                        <a
-                            key={link.name}
-                            href={link.href}
-                            className="flex items-center gap-2.5 px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider text-studio-muted hover:text-white hover:bg-white/5 transition-all duration-200"
+                    {/* Emplacement futur : sélecteur de langue (quand l'i18n sera en place) */}
+
+                    <div className="flex items-center gap-3">
+                        {showCta && (
+                            <a
+                                href={STEAM_URL}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`hidden bg-studio-red px-5 py-2.5 text-xs font-extrabold uppercase tracking-[0.18em] text-white transition-colors hover:bg-studio-red-hover md:inline-block ${focusRing}`}
+                            >
+                                Play on Steam
+                            </a>
+                        )}
+
+                        {/* Burger : 3 traits animés, sans dépendance d'icônes */}
+                        <button
+                            type="button"
+                            onClick={() => setOpen((v) => !v)}
+                            aria-expanded={open}
+                            aria-controls="mobile-menu"
+                            aria-label={open ? 'Close menu' : 'Open menu'}
+                            className={`relative -mr-2 h-11 w-11 md:hidden ${focusRing}`}
                         >
-                            {link.icon}
-                            <span>{link.name}</span>
-                        </a>
+                            <span
+                                className={`absolute left-1/2 top-1/2 h-0.5 w-6 -translate-x-1/2 bg-studio-text transition-transform duration-300 motion-reduce:transition-none ${open ? 'rotate-45' : '-translate-y-[7px]'}`}
+                            />
+                            <span
+                                className={`absolute left-1/2 top-1/2 h-0.5 w-6 -translate-x-1/2 -translate-y-1/2 bg-studio-text transition-opacity duration-200 ${open ? 'opacity-0' : 'opacity-100'}`}
+                            />
+                            <span
+                                className={`absolute left-1/2 top-1/2 h-0.5 w-6 -translate-x-1/2 bg-studio-text transition-transform duration-300 motion-reduce:transition-none ${open ? '-rotate-45' : 'translate-y-[5px]'}`}
+                            />
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Menu mobile plein écran (placé sous la barre grâce à -z-10 dans le contexte d'empilement du header) */}
+            <div
+                id="mobile-menu"
+                inert={!open}
+                aria-hidden={!open}
+                className={`fixed inset-0 -z-10 flex h-dvh flex-col justify-between bg-studio-bg px-5 pb-10 pt-28 transition-[opacity,visibility] duration-300 md:hidden ${open ? 'visible opacity-100' : 'invisible opacity-0'}`}
+            >
+                <nav className="flex flex-col" aria-label="Mobile">
+                    {NAV_LINKS.map((link, i) => (
+                        <Link
+                            key={link.id}
+                            to={`/#${link.id}`}
+                            onClick={(e) => goToSection(e, link.id)}
+                            style={{ transitionDelay: open ? `${80 + i * 60}ms` : '0ms' }}
+                            className={`border-b border-white/10 py-5 text-4xl font-extrabold uppercase tracking-tight text-studio-text transition-[opacity,transform] duration-500 active:text-studio-red motion-reduce:transition-none ${open ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'} ${focusRing}`}
+                        >
+                            {link.label}
+                        </Link>
                     ))}
                 </nav>
 
-                {/* BOUTON D'ACTION DIRECTE DESKTOP (Utilise le composant UI Button) */}
-                <div className="hidden md:block">
-                    <Button
-                        variant="primary"
-                        asLink
-                        href="#projects"
-                        icon={<Gamepad2 className="w-4 h-4" />}
-                        className="!py-2.5 !px-5 !text-xs font-bold uppercase tracking-widest bg-studio-red hover:bg-studio-red-hover transition-all shadow-lg shadow-studio-red/20"
+                {showCta && (
+                    <a
+                        href={STEAM_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => setOpen(false)}
+                        className={`block bg-studio-red py-4 text-center text-sm font-extrabold uppercase tracking-[0.18em] text-white active:bg-studio-red-hover ${focusRing}`}
                     >
-                        Explorer
-                    </Button>
-                </div>
-
-                {/* BOUTON MENU HAMBURGER MOBILE */}
-                <button
-                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    className="md:hidden p-2.5 rounded-xl bg-studio-card border border-white/10 text-studio-text hover:bg-white/10 transition-colors"
-                    aria-label="Toggle menu"
-                >
-                    {isMobileMenuOpen ? <X className="w-6 h-6 text-studio-red" /> : <Menu className="w-6 h-6" />}
-                </button>
+                        Play on Steam
+                    </a>
+                )}
             </div>
-
-            {/* MENU MOBILE DÉOULANT */}
-            {isMobileMenuOpen && (
-                <div className="md:hidden absolute top-full left-0 right-0 bg-[#0B111E]/98 backdrop-blur-2xl border-b border-white/10 px-6 py-6 space-y-4 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300">
-                    <nav className="flex flex-col space-y-2">
-                        {navLinks.link.map ? null : navLinks.map((link) => (
-                            <a
-                                key={link.name}
-                                href={link.href}
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-bold uppercase tracking-wider text-studio-text bg-studio-card/50 border border-white/5 hover:border-studio-red/30 hover:bg-white/10 transition-all"
-                            >
-                                {link.icon}
-                                <span>{link.name}</span>
-                            </a>
-                        ))}
-                    </nav>
-                    <div className="pt-2 border-t border-white/10">
-                        <Button
-                            variant="primary"
-                            asLink
-                            href="#projects"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className="w-full justify-center !py-3 !text-xs font-bold uppercase tracking-widest bg-studio-red"
-                        >
-                            Explorer les créations
-                        </Button>
-                    </div>
-                </div>
-            )}
         </header>
     );
 };

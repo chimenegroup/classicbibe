@@ -14,6 +14,15 @@
     --color-studio-muted: #94A3B8;    /* Texte secondaire */
 }
 
+/* Ancres : compense la hauteur de la navbar fixe */
+html {
+    scroll-padding-top: 5rem;
+}
+
+:focus-visible {
+    outline-color: var(--color-studio-red-hover);
+}
+
 /* 2. Style global du Body */
 body {
     background-color: var(--color-studio-bg);
@@ -45,4 +54,74 @@ body {
         border-color: rgba(168, 59, 59, 0.4); /* Bordure rouge accent au survol */
         box-shadow: 0 10px 30px -10px rgba(10, 56, 113, 0.3);
     }
+}
+/* 4. Animations du Hero : transform/opacity uniquement (cheap pour le GPU) */
+@keyframes hero-zoom {
+    from { transform: scale(1.12); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
+}
+@keyframes rise {
+    from { transform: translateY(24px); opacity: 0; }
+    to   { transform: none;             opacity: 1; }
+}
+@keyframes scroll-cue {
+    0%   { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+}
+.hero-zoom { animation: hero-zoom 1.6s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.rise      { animation: rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: var(--d, 0ms); }
+.scroll-cue { animation: scroll-cue 2s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+    .hero-zoom, .rise, .scroll-cue { animation: none; }
+}
+
+
+/* 4. Animations légères (transform/opacity uniquement) */
+@keyframes rise {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: none; }
+}
+@keyframes hero-zoom {
+    from { transform: scale(1.08); }
+    to   { transform: scale(1); }
+}
+.anim-rise {
+    animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation-delay: var(--d, 0ms);
+}
+.anim-zoom {
+    animation: hero-zoom 1.6s ease-out both;
+}
+
+/* Parallaxe au scroll en CSS pur (navigateurs compatibles uniquement, zéro JS) */
+@keyframes hero-parallax {
+    to { transform: translateY(10svh); }
+}
+@supports (animation-timeline: scroll()) {
+    .hero-parallax {
+        animation: hero-parallax linear both;
+        animation-timeline: scroll(root);
+        animation-range: 0 100svh;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .anim-rise, .anim-zoom, .hero-parallax {
+        animation: none;
+    }
+}
+
+/* Apparition au scroll (voir components/utils/Reveal.tsx) */
+.reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.reveal.is-in {
+    opacity: 1;
+    transform: none;
+}
+@media (scripting: none) {
+    .reveal { opacity: 1; transform: none; }
 }

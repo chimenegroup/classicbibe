@@ -1,118 +1,100 @@
 import React from 'react';
-import { Mail, Github, Twitter, Gamepad2, MessageSquare, ArrowUpRight, Terminal } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ArrowUpRight } from 'lucide-react';
+import { useSectionScroll } from '../utils/useSectionScroll';
 
-// Composant utilitaire pour les boutons sociaux (Style Studio AAA)
-const SocialLink = ({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) => (
-    <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label={label}
-        title={label}
-        className="w-11 h-11 rounded-xl bg-studio-card border border-white/10 flex items-center justify-center text-studio-muted hover:bg-studio-red hover:text-white hover:border-studio-red transition-all duration-300 shadow-lg group"
-    >
-        <span className="group-hover:scale-110 transition-transform">
-            {icon}
-        </span>
-    </a>
+const EMAIL = 'chimene.info@gmail.com';
+
+const SOCIALS = [
+    { label: 'YouTube', url: 'https://www.youtube.com/@ChimeneStudio' },
+    { label: 'X', url: 'https://x.com/ChimeneStudio' },
+];
+
+const linkClass =
+    'text-sm text-studio-muted transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white';
+
+const Column: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+    <div>
+        <h3 className="text-[11px] font-bold uppercase tracking-[0.3em] text-studio-text">{title}</h3>
+        <ul className="mt-5 space-y-3">{children}</ul>
+    </div>
 );
 
 export const Footer: React.FC = () => {
-    const currentYear = new Date().getFullYear();
+    const scrollToSection = useSectionScroll();
 
     return (
-        <footer className="bg-studio-bg border-t border-white/10 pt-20 pb-12 px-6 relative z-10 overflow-hidden">
-
-            {/* Halo lumineux de fond cinématique */}
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-studio-blue/10 rounded-full blur-[140px] pointer-events-none" />
-
-            <div className="max-w-7xl mx-auto relative z-10">
-
-                {/* GRILLE PRINCIPALE DU FOOTER */}
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-16">
-
-                    {/* Colonne 1 : Marque & Description (5 colonnes) */}
-                    <div className="md:col-span-5 space-y-6">
-                        <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-studio-card border border-white/10 flex items-center justify-center font-black text-white text-sm shadow-inner">
-                                CS
-                            </div>
-                            <span className="font-black text-white tracking-widest text-lg uppercase">
-                                CHIMENE<span className="text-studio-red">.</span>
+        <footer id="contact" className="border-t border-white/10 bg-studio-bg">
+            <div className="mx-auto max-w-7xl px-5 pb-10 pt-16 md:px-8 md:pt-20">
+                <div className="grid gap-12 lg:grid-cols-12">
+                    {/* Marque + contact */}
+                    <div className="lg:col-span-5">
+                        <p className="text-2xl font-extrabold uppercase leading-none tracking-[0.2em] text-white">
+                            Chimene
+                            <span className="mt-2 block text-xs font-semibold tracking-[0.4em] text-studio-muted">
+                                Studio
                             </span>
-                        </div>
-                        <p className="text-studio-muted text-sm leading-relaxed max-w-sm">
-                            Studio indépendant spécialisé dans le développement de jeux vidéo multijoueurs à basse latence et d'utilitaires desktop haute performance.
                         </p>
-                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[11px] font-mono text-studio-muted uppercase tracking-wider">
-                            <Terminal className="w-3.5 h-3.5 text-studio-red" />
-                            <span>Build Environment : Windows / Rust / Unity</span>
-                        </div>
-                    </div>
-
-                    {/* Colonne 2 : Navigation Rapide (3 colonnes) */}
-                    <div className="md:col-span-3 space-y-4">
-                        <h4 className="text-white font-black text-xs tracking-[0.2em] uppercase">Navigation</h4>
-                        <ul className="space-y-3 font-medium">
-                            <li>
-                                <a href="#home" className="text-studio-muted hover:text-white transition-colors text-sm flex items-center gap-2 group">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-studio-red opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    Accueil
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#projects" className="text-studio-muted hover:text-white transition-colors text-sm flex items-center gap-2 group">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-studio-red opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    Showroom (Projets)
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#about" className="text-studio-muted hover:text-white transition-colors text-sm flex items-center gap-2 group">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-studio-red opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    À Propos
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-
-                    {/* Colonne 3 : Contact & Réseaux (4 colonnes) */}
-                    <div className="md:col-span-4 space-y-4">
-                        <h4 className="text-white font-black text-xs tracking-[0.2em] uppercase">Contact & Réseaux</h4>
-
-                        {/* Contact Direct */}
+                        <p className="mt-6 max-w-xs text-sm leading-relaxed text-studio-muted">
+                            Fun games and free tools, made independently.
+                        </p>
                         <a
-                            href="mailto:contact@chimenestudio.com"
-                            className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-studio-card border border-white/10 text-studio-muted hover:text-white hover:border-studio-blue transition-all text-sm group w-full justify-between"
+                            href={`mailto:${EMAIL}`}
+                            className="group mt-6 inline-flex items-center gap-2 border-b border-white/30 pb-1 text-base font-semibold text-studio-text transition-colors hover:border-studio-red focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                         >
-                            <div className="flex items-center gap-2.5">
-                                <Mail className="w-4 h-4 text-studio-blue" />
-                                <span>contact@chimenestudio.com</span>
-                            </div>
-                            <ArrowUpRight className="w-4 h-4 text-studio-muted group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                            {EMAIL}
+                            <ArrowUpRight
+                                className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 motion-reduce:transition-none"
+                                aria-hidden="true"
+                            />
                         </a>
-
-                        {/* Liens Sociaux */}
-                        <div className="flex flex-wrap gap-2.5 pt-2">
-                            <SocialLink href="https://store.steampowered.com/developer/chimenestudio" icon={<Gamepad2 className="w-5 h-5" />} label="Steam" />
-                            <SocialLink href="https://github.com/chimenestudio" icon={<Github className="w-5 h-5" />} label="GitHub" />
-                            <SocialLink href="https://twitter.com/chimenestudio" icon={<Twitter className="w-5 h-5" />} label="Twitter / X" />
-                            <SocialLink href="https://discord.gg/chimenestudio" icon={<MessageSquare className="w-5 h-5" />} label="Discord" />
-                        </div>
                     </div>
 
-                </div>
+                    <div className="grid grid-cols-2 gap-10 sm:grid-cols-3 lg:col-span-7">
+                        <Column title="Studio">
+                            <li>
+                                <Link to="/#projects" onClick={(e) => scrollToSection(e, 'projects')} className={linkClass}>
+                                    Games & tools
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/#about" onClick={(e) => scrollToSection(e, 'about')} className={linkClass}>
+                                    About
+                                </Link>
+                            </li>
+                        </Column>
 
-                {/* SECTION BASSE : COPYRIGHT & MENTIONS */}
-                <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <p className="text-studio-muted text-xs font-mono">
-                        © {currentYear} CHIMENE STUDIO. TOUS DROITS RÉSERVÉS.
-                    </p>
-                    <div className="flex gap-6 text-xs text-studio-muted font-mono">
-                        <a href="/mentions-legales" className="hover:text-white transition-colors">MENTIONS LÉGALES</a>
-                        <a href="/confidentialite" className="hover:text-white transition-colors">CONFIDENTIALITÉ</a>
+                        <Column title="Projects">
+                            <li>
+                                <Link to="/project/classic-bibe" className={linkClass}>
+                                    Classic Bibe
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/project/pdf-manager-desktop" className={linkClass}>
+                                    Orion PDF
+                                </Link>
+                            </li>
+                        </Column>
+
+                        <Column title="Follow">
+                            {SOCIALS.map((social) => (
+                                <li key={social.label}>
+                                    <a href={social.url} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                                        {social.label}
+                                    </a>
+                                </li>
+                            ))}
+                        </Column>
                     </div>
                 </div>
 
+                <div className="mt-16 flex flex-col gap-4 border-t border-white/10 pt-6 text-xs text-studio-muted sm:flex-row sm:items-center sm:justify-between">
+                    <p>© {new Date().getFullYear()} Chimene Studio. All rights reserved.</p>
+                    <Link to="/classicbibe/privacy" className="transition-colors hover:text-white">
+                        Classic Bibe privacy policy
+                    </Link>
+                </div>
             </div>
         </footer>
     );

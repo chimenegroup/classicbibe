@@ -11,19 +11,19 @@ interface SEOProps {
 }
 
 export const SEO: React.FC<SEOProps> = ({
-                                            title = 'Chimene Studio | Jeux Vidéo & Applications Natives',
-                                            description = 'Studio indépendant spécialisé dans le développement de jeux vidéo multijoueurs à basse latence et d\'applications desktop haute performance.',
-                                            image = 'https://chimenestudio.com/og-cover.png',
+                                            title = 'Chimene Studio | Indie Games & Apps',
+                                            description = 'Independent studio behind Classic Bibe, a cartoon party game for 1 to 4 players, and Orion PDF, a fast offline PDF manager.',
+                                            image = 'https://chimenestudio.com/og/classic-bibe.jpg',
                                             url = 'https://chimenestudio.com',
                                             type = 'website',
-                                            keywords = 'Chimene Studio, indie game dev, jeux vidéo, applications desktop, Tauri, Rust, Unity, Mirror, Classic Bibe',
+                                            keywords = 'Chimene Studio, indie games, party game, local multiplayer, Classic Bibe, Orion PDF',
                                         }) => {
     const siteTitle = title.includes('Chimene Studio') ? title : `${title} | Chimene Studio`;
 
     return (
         <Helmet>
             {/* Langue principale du document */}
-            <html lang="fr" />
+            <html lang="en" />
 
             {/* Balises SEO Standard */}
             <title>{siteTitle}</title>
@@ -35,7 +35,7 @@ export const SEO: React.FC<SEOProps> = ({
             <meta name="robots" content="index, follow" />
 
             {/* Open Graph / Facebook / Discord / LinkedIn / WhatsApp */}
-            <meta property="og:locale" content="fr_FR" />
+            <meta property="og:locale" content="en_US" />
             <meta property="og:type" content={type === 'game' ? 'website' : type} />
             <meta property="og:title" content={siteTitle} />
             <meta property="og:description" content={description} />

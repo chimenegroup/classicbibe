@@ -1,431 +1,294 @@
-import React, { useState } from 'react';
-import { useParams, Link, Navigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-    ArrowLeft,
-    ExternalLink,
-    Gamepad2,
-    ShoppingBag,
-    Github,
-    Globe,
-    CheckCircle2,
-    Layers,
-    Calendar,
-    ShieldCheck,
-    Maximize2,
-    X,
-    Play,
-    Terminal,
-    Sparkles
-} from 'lucide-react';
-import { getProjectById } from '../data/projects';
-import { Badge } from '../components/ui/Badge';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, Navigate, useParams } from 'react-router-dom';
+import { ArrowLeft, Maximize2, Play, X } from 'lucide-react';
+import { getProjectById, type Project } from '../data/projects';
 import { SEO } from '../components/seo/SEO';
+import { SectionTitle } from '../components/ui/SectionTitle';
+import { StoreLinks } from '../components/ui/StoreLinks';
 
-export const ProjectDetail: React.FC = () => {
-    const { id } = useParams<{ id: string }>();
-    const project = getProjectById(id || '');
+const STATUS_LABEL: Record<Project['status'], string> = {
+    Released: 'Out now',
+    Beta: 'Beta',
+    'In Development': 'In development',
+};
 
-    // Gestion du média sélectionné (Vidéo ou Image de galerie)
-    const [activeMedia, setActiveMedia] = useState<'video' | number>(
-        project?.videoUrl ? 'video' : 0
-    );
+const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white';
 
-    // Modale Lightbox pour afficher les visuels en grand
-    const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+const ProjectPage: React.FC<{ project: Project }> = ({ project }) => {
+    const { gallery, videoId } = project;
+    const [active, setActive] = useState<'video' | number>(videoId ? 'video' : 0);
+    const [playing, setPlaying] = useState(false); // le lecteur YouTube n'est chargé qu'au clic
+    const [lightbox, setLightbox] = useState<string | null>(null);
+    const dialogRef = useRef<HTMLDialogElement>(null);
 
-    if (!project) {
-        return <Navigate to="/" replace />;
-    }
+    // Lightbox via <dialog> natif : Échap, focus et fond gérés par le navigateur
+    useEffect(() => {
+        const dialog = dialogRef.current;
+        if (!dialog) return;
+        if (lightbox && !dialog.open) dialog.showModal();
+        if (!lightbox && dialog.open) dialog.close();
+    }, [lightbox]);
 
-    // Liste globale de tous les visuels (Cover + Galerie)
-    const allImages = [project.coverImage, ...(project.gallery || [])];
+    const select = (media: 'video' | number) => {
+        setActive(media);
+        setPlaying(false);
+    };
+
+    const isGame = project.category === 'game';
+    const poster = gallery[0] ?? project.coverImage;
+    const hasMedia = Boolean(videoId) || gallery.length > 0;
+
+    const details: [string, string | undefined][] = [
+        ['Release', project.releaseDate],
+        [project.links.steam ? 'Price (Steam)' : 'Price', project.price],
+        ['Platforms', project.platforms?.join(', ')],
+        ['Developer', 'Chimene Studio'],
+        ['Languages', project.languages?.join(', ')],
+        ['Tags', project.tags.join(', ')],
+    ];
 
     return (
-        <div className="min-h-screen bg-studio-bg text-studio-text pb-32 relative overflow-hidden">
-
-            {/* Configuration SEO dynamique */}
+        <div className="bg-studio-bg text-studio-text">
             <SEO
                 title={project.title}
-                description={project.tagline || project.description}
-                image={`https://chimenestudio.com${project.coverImage}`}
+                description={project.tagline}
+                image={`https://chimenestudio.com/og/${project.id}.jpg`}
                 url={`https://chimenestudio.com/project/${project.id}`}
                 type="game"
             />
 
-            {/* Lightbox Modal Plein Écran */}
-            <AnimatePresence>
-                {lightboxImage && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={() => setLightboxImage(null)}
-                        className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 cursor-pointer"
-                    >
-                        <button
-                            onClick={() => setLightboxImage(null)}
-                            className="absolute top-6 right-6 p-3 rounded-xl bg-studio-card border border-white/10 hover:bg-studio-red text-white transition-colors shadow-2xl z-50"
-                            aria-label="Fermer"
-                        >
-                            <X className="w-6 h-6" />
-                        </button>
-                        <motion.img
-                            initial={{ scale: 0.95 }}
-                            animate={{ scale: 1 }}
-                            exit={{ scale: 0.95 }}
-                            src={lightboxImage}
-                            alt="Agrandissement"
-                            className="max-w-full max-h-[90vh] rounded-2xl object-contain shadow-2xl border border-white/10"
+            {/* ---------- En-tête ---------- */}
+            <header className="relative isolate overflow-hidden">
+                {project.banner && (
+                    <>
+                        <img
+                            src={project.banner}
+                            alt=""
+                            width={1920}
+                            height={705}
+                            fetchPriority="high"
+                            decoding="async"
+                            className="anim-zoom absolute inset-0 -z-10 h-full w-full object-cover object-[30%_50%]"
                         />
-                    </motion.div>
+                        <div className="absolute inset-0 -z-10 bg-gradient-to-t from-studio-bg via-studio-bg/75 to-studio-bg/40 lg:hidden" />
+                        <div className="absolute inset-0 -z-10 hidden bg-gradient-to-r from-studio-bg from-15% via-studio-bg/70 via-45% to-transparent to-80% lg:block" />
+                        <div className="absolute inset-x-0 bottom-0 -z-10 h-1/3 bg-gradient-to-t from-studio-bg to-transparent" />
+                    </>
                 )}
-            </AnimatePresence>
 
-            {/* =========================================================================
-               1. HERO CINÉMATIQUE PLEIN ÉCRAN (Façon Store AAA / EA)
-               ========================================================================= */}
-            <div className="relative w-full h-[60vh] sm:h-[70vh] min-h-[500px] overflow-hidden bg-black">
-                {/* Image de fond en mode couverture immersive */}
-                <img
-                    src={project.coverImage}
-                    alt={project.title}
-                    className="w-full h-full object-cover filter brightness-75 scale-105"
-                    onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'https://placehold.co/1920x1080/0B111E/94A3B8?text=Chimene+Studio';
-                    }}
-                />
+                <div className="mx-auto max-w-7xl px-5 pb-12 pt-28 md:px-8 md:pb-16 md:pt-40 lg:pt-52">
+                    <Link
+                        to="/#projects"
+                        className={`inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-studio-muted transition-colors hover:text-white ${focusRing}`}
+                    >
+                        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                        All projects
+                    </Link>
 
-                {/* Dégradés superposés pour fondre l'image dans le fond sombre du site */}
-                <div className="absolute inset-0 bg-gradient-to-t from-studio-bg via-studio-bg/60 to-black/40" />
-                <div className="absolute inset-0 bg-gradient-to-r from-studio-bg/90 via-transparent to-transparent" />
+                    <p className="anim-rise mt-8 flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.3em] text-studio-muted">
+                        <span className="h-2 w-2 bg-studio-red" aria-hidden="true" />
+                        {isGame ? 'Game' : 'Tool'} · {STATUS_LABEL[project.status]}
+                        {project.platforms && (
+                            <span className="hidden text-studio-muted/70 sm:inline">· {project.platforms.join(' / ')}</span>
+                        )}
+                    </p>
 
-                {/* Contenu du Hero positionné en bas de l'image */}
-                <div className="absolute inset-0 flex items-end">
-                    <div className="max-w-7xl mx-auto w-full px-6 pb-12 sm:pb-16 flex flex-col md:flex-row md:items-end justify-between gap-8">
+                    <h1
+                        style={{ '--d': '100ms' } as React.CSSProperties}
+                        className="anim-rise mt-4 text-[clamp(3rem,11vw,7.5rem)] font-extrabold uppercase leading-[0.9] tracking-tighter text-white"
+                    >
+                        {project.title}
+                    </h1>
 
-                        <div className="space-y-4 max-w-3xl">
-                            {/* Bouton Retour discret en haut */}
-                            <Link
-                                to="/"
-                                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-black/60 backdrop-blur-md border border-white/10 text-studio-muted hover:text-white transition-all text-xs font-bold uppercase tracking-wider mb-2"
-                            >
-                                <ArrowLeft className="w-3.5 h-3.5" />
-                                <span>Retour au Showroom</span>
-                            </Link>
+                    <p
+                        style={{ '--d': '200ms' } as React.CSSProperties}
+                        className="anim-rise mt-5 max-w-xl text-lg text-studio-text/90 sm:text-xl"
+                    >
+                        {project.tagline}
+                    </p>
 
-                            <div className="flex flex-wrap items-center gap-3">
-                                <span className="px-3 py-1 rounded-md bg-studio-blue/30 border border-studio-blue/40 text-xs font-mono font-bold tracking-widest uppercase text-white backdrop-blur-md">
-                                    {project.category === 'game' ? 'Jeu Vidéo' : 'Application Desktop'}
-                                </span>
-                                <Badge variant={project.status === 'Released' ? 'accent' : 'outline'}>
-                                    {project.status === 'Released' ? 'Disponible' : project.status}
-                                </Badge>
-                            </div>
-
-                            <h1 className="text-4xl sm:text-6xl md:text-7xl font-black text-white tracking-tight uppercase font-sans drop-shadow-lg">
-                                {project.title}
-                            </h1>
-
-                            <p className="text-lg sm:text-xl font-bold text-studio-red font-mono drop-shadow">
-                                {project.tagline}
-                            </p>
-                        </div>
-
-                        {/* Bouton d'action rapide principal (Store CTA) */}
-                        <div className="shrink-0">
-                            {project.links.steam ? (
-                                <a
-                                    href={project.links.steam}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-3 px-8 py-5 rounded-2xl bg-studio-red hover:bg-studio-red-hover text-white font-black text-sm uppercase tracking-widest shadow-2xl shadow-studio-red/40 transition-all hover:scale-105 border border-white/20"
-                                >
-                                    <Gamepad2 className="w-6 h-6" />
-                                    <span>Jouer sur Steam</span>
-                                    <ExternalLink className="w-4 h-4" />
-                                </a>
-                            ) : project.links.store ? (
-                                <a
-                                    href={project.links.store}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-3 px-8 py-5 rounded-2xl bg-studio-blue hover:bg-blue-600 text-white font-black text-sm uppercase tracking-widest shadow-2xl shadow-studio-blue/40 transition-all hover:scale-105 border border-white/20"
-                                >
-                                    <ShoppingBag className="w-6 h-6" />
-                                    <span>Microsoft Store</span>
-                                    <ExternalLink className="w-4 h-4" />
-                                </a>
-                            ) : null}
-                        </div>
-
+                    <div style={{ '--d': '300ms' } as React.CSSProperties} className="anim-rise mt-8">
+                        <StoreLinks project={project} />
                     </div>
                 </div>
-            </div>
+            </header>
 
-            {/* =========================================================================
-               2. CONTENU PRINCIPAL & GRILLE IMMERSIVE
-               ========================================================================= */}
-            <div className="max-w-7xl mx-auto px-6 mt-16 space-y-20 relative z-10">
+            <div className="mx-auto max-w-7xl space-y-20 px-5 pb-24 pt-10 md:space-y-28 md:px-8">
+                {/* ---------- Trailer + captures ---------- */}
+                {hasMedia && (
+                    <section>
+                        <SectionTitle id="trailer" title={videoId ? 'Trailer & screenshots' : 'Screenshots'} />
 
-                {/* Grille de présentation (Description longue & Panneau d'achat détaillé) */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-
-                    {/* Description narrative */}
-                    <div className="lg:col-span-8 space-y-6">
-                        <div className="inline-flex items-center gap-2 text-xs font-mono text-studio-muted uppercase tracking-widest">
-                            <Sparkles className="w-4 h-4 text-studio-red" />
-                            <span>Vue d'ensemble du projet</span>
-                        </div>
-
-                        <p className="text-studio-text text-lg sm:text-xl leading-relaxed font-normal">
-                            {project.description}
-                        </p>
-                    </div>
-
-                    {/* Panneau de distribution complet (Sidebar style store) */}
-                    <div className="lg:col-span-4 glass-card p-6 rounded-3xl border border-white/10 space-y-4 shadow-2xl bg-studio-card">
-                        <div className="flex items-center gap-2 border-b border-white/10 pb-4 mb-2">
-                            <Terminal className="w-4 h-4 text-studio-red" />
-                            <h3 className="text-white font-black text-xs uppercase tracking-[0.2em]">Accès & Canaux</h3>
-                        </div>
-
-                        {project.links.steam && (
-                            <a
-                                href={project.links.steam}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center justify-between w-full px-5 py-3.5 rounded-xl bg-gradient-to-r from-blue-700 to-indigo-900 hover:from-blue-600 hover:to-indigo-800 text-white font-bold text-xs uppercase tracking-wider transition-all group border border-white/10 shadow-lg"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <Gamepad2 className="w-5 h-5" />
-                                    <span>Steam Store</span>
-                                </div>
-                                <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                            </a>
-                        )}
-
-                        {project.links.store && (
-                            <a
-                                href={project.links.store}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center justify-between w-full px-5 py-3.5 rounded-xl bg-gradient-to-r from-cyan-700 to-blue-800 hover:from-cyan-600 hover:to-blue-700 text-white font-bold text-xs uppercase tracking-wider transition-all group border border-white/10 shadow-lg"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <ShoppingBag className="w-5 h-5" />
-                                    <span>Microsoft Store</span>
-                                </div>
-                                <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                            </a>
-                        )}
-
-                        {project.links.github && (
-                            <a
-                                href={project.links.github}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center justify-between w-full px-5 py-3.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold text-xs uppercase tracking-wider border border-white/10 transition-all group"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <Github className="w-4 h-4" />
-                                    <span>Repository GitHub</span>
-                                </div>
-                                <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                            </a>
-                        )}
-
-                        {project.links.website && (
-                            <a
-                                href={project.links.website}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center justify-between w-full px-5 py-3.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold text-xs uppercase tracking-wider border border-white/10 transition-all group"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <Globe className="w-4 h-4" />
-                                    <span>Site Web Officiel</span>
-                                </div>
-                                <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                            </a>
-                        )}
-
-                        {!project.links.steam && !project.links.store && !project.links.github && !project.links.website && (
-                            <div className="text-center py-6 text-studio-muted text-xs font-mono uppercase tracking-wider bg-white/5 rounded-xl border border-white/5">
-                                Disponibilité imminente.
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* =========================================================================
-                   3. GALERIE MÉDIA & LECTEUR IMMERSIF
-                   ========================================================================= */}
-                <div className="space-y-6">
-                    <div className="border-b border-white/10 pb-4">
-                        <h2 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tight">Galerie & Médias</h2>
-                    </div>
-
-                    {/* Lecteur Principal */}
-                    <div className="relative aspect-video w-full rounded-3xl overflow-hidden glass-card border border-white/10 bg-black shadow-2xl">
-                        {activeMedia === 'video' && project.videoUrl ? (
-                            <iframe
-                                src={project.videoUrl}
-                                title={`Trailer de ${project.title}`}
-                                className="w-full h-full border-0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                            />
-                        ) : (
-                            <div className="relative w-full h-full group">
-                                <img
-                                    src={allImages[typeof activeMedia === 'number' ? activeMedia : 0]}
-                                    alt={`Aperçu ${project.title}`}
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                        (e.target as HTMLImageElement).src = 'https://placehold.co/1280x720/131C2E/94A3B8?text=Chimene+Studio';
-                                    }}
-                                />
-                                <button
-                                    onClick={() => setLightboxImage(allImages[typeof activeMedia === 'number' ? activeMedia : 0])}
-                                    className="absolute bottom-6 right-6 px-5 py-3 rounded-xl bg-black/80 hover:bg-studio-red text-white backdrop-blur-md transition-all opacity-0 group-hover:opacity-100 flex items-center gap-2.5 text-xs font-bold uppercase tracking-wider border border-white/15 shadow-2xl"
-                                >
-                                    <Maximize2 className="w-4 h-4" />
-                                    <span>Agrandir l'image</span>
-                                </button>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Vignettes de sélection */}
-                    <div className="flex items-center gap-4 overflow-x-auto p-3 scrollbar-thin">
-                        {project.videoUrl && (
-                            <button
-                                onClick={() => setActiveMedia('video')}
-                                className={`relative flex-shrink-0 w-40 h-28 rounded-2xl overflow-hidden border-2 transition-all flex items-center justify-center bg-studio-card ${
-                                    activeMedia === 'video' ? 'border-studio-red scale-105 shadow-xl shadow-studio-red/25' : 'border-white/10 opacity-60 hover:opacity-100'
-                                }`}
-                            >
-                                <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                                    <Play className="w-8 h-8 text-white fill-white" />
-                                </div>
-                                <span className="absolute bottom-2 text-[10px] font-mono font-bold text-white uppercase tracking-widest">Trailer Officiel</span>
-                            </button>
-                        )}
-
-                        {allImages.map((imgSrc, idx) => (
-                            <button
-                                key={idx}
-                                onClick={() => setActiveMedia(idx)}
-                                className={`relative flex-shrink-0 w-40 h-28 rounded-2xl overflow-hidden border-2 transition-all bg-studio-card ${
-                                    activeMedia === idx ? 'border-studio-red scale-105 shadow-xl shadow-studio-red/25' : 'border-white/10 opacity-60 hover:opacity-100'
-                                }`}
-                            >
-                                <img
-                                    src={imgSrc}
-                                    alt={`Vignette ${idx + 1}`}
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                        (e.target as HTMLImageElement).src = 'https://placehold.co/300x200/131C2E/94A3B8?text=Asset';
-                                    }}
-                                />
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* =========================================================================
-                   4. POINTS FORTS & FONCTIONNALITÉS (Grille Style Cartes AAA)
-                   ========================================================================= */}
-                <div className="space-y-6">
-                    <div className="border-b border-white/10 pb-4">
-                        <h2 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tight">Points Forts & Fonctionnalités</h2>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {project.features.map((feature, index) => (
-                            <motion.div
-                                key={index}
-                                initial={{ opacity: 0, y: 15 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: index * 0.1 }}
-                                className="glass-card p-6 rounded-3xl border border-white/10 flex items-start gap-4 hover:border-white/20 transition-all bg-studio-card"
-                            >
-                                <div className="p-3 rounded-2xl bg-studio-red/10 text-studio-red shrink-0 border border-studio-red/20">
-                                    <CheckCircle2 className="w-6 h-6" />
-                                </div>
-                                <p className="text-studio-text text-base font-medium leading-relaxed pt-1.5">
-                                    {feature}
-                                </p>
-                            </motion.div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* =========================================================================
-                   5. SPÉCIFICATIONS TECHNIQUES (Fiche Propre)
-                   ========================================================================= */}
-                <div className="space-y-6">
-                    <div className="border-b border-white/10 pb-4">
-                        <h2 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tight">Spécifications Techniques</h2>
-                    </div>
-
-                    <div className="glass-card rounded-3xl border border-white/10 overflow-hidden bg-studio-card shadow-2xl">
-                        <div className="divide-y divide-white/10">
-
-                            <div className="p-6 sm:p-8 grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
-                                <span className="text-studio-muted text-xs font-mono uppercase tracking-widest flex items-center gap-3">
-                                    <Layers className="w-4 h-4 text-studio-blue" />
-                                    Technologies & Stack
-                                </span>
-                                <div className="sm:col-span-2 flex flex-wrap gap-2">
-                                    {project.tags.map((tag) => (
-                                        <span key={tag} className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-mono text-white font-semibold">
-                                            {tag}
+                        <div className="mt-8 aspect-video w-full overflow-hidden border border-white/10 bg-black">
+                            {active === 'video' && videoId ? (
+                                playing ? (
+                                    <iframe
+                                        src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`}
+                                        title={`${project.title} trailer`}
+                                        className="h-full w-full border-0"
+                                        allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                                        referrerPolicy="strict-origin-when-cross-origin"
+                                        allowFullScreen
+                                    />
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => setPlaying(true)}
+                                        aria-label={`Play the ${project.title} trailer`}
+                                        className={`group relative block h-full w-full ${focusRing}`}
+                                    >
+                                        <img
+                                            src={poster}
+                                            alt=""
+                                            loading="lazy"
+                                            decoding="async"
+                                            className="h-full w-full object-cover"
+                                        />
+                                        <span className="absolute inset-0 bg-studio-bg/30 transition-colors group-hover:bg-studio-bg/10" />
+                                        <span className="absolute left-1/2 top-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center bg-studio-red text-white transition-transform duration-300 group-hover:scale-110 motion-reduce:transition-none">
+                                            <Play className="h-8 w-8 fill-white" aria-hidden="true" />
                                         </span>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="p-6 sm:p-8 grid grid-cols-1 sm:grid-cols-3 gap-4 items-center bg-white/[0.01]">
-                                <span className="text-studio-muted text-xs font-mono uppercase tracking-widest flex items-center gap-3">
-                                    <Calendar className="w-4 h-4 text-studio-blue" />
-                                    Sortie / Disponibilité
-                                </span>
-                                <span className="sm:col-span-2 text-white font-bold text-sm font-mono">
-                                    {project.releaseDate}
-                                </span>
-                            </div>
-
-                            <div className="p-6 sm:p-8 grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
-                                <span className="text-studio-muted text-xs font-mono uppercase tracking-widest flex items-center gap-3">
-                                    <ShieldCheck className="w-4 h-4 text-studio-blue" />
-                                    Statut Actuel
-                                </span>
-                                <span className="sm:col-span-2 text-white font-bold text-sm">
-                                    {project.status === 'Released' ? 'Version Finale Commercialisée' : 'En Phase Active de Développement'}
-                                </span>
-                            </div>
-
-                            <div className="p-6 sm:p-8 grid grid-cols-1 sm:grid-cols-3 gap-4 items-center bg-white/[0.01]">
-                                <span className="text-studio-muted text-xs font-mono uppercase tracking-widest flex items-center gap-3">
-                                    <Globe className="w-4 h-4 text-studio-blue" />
-                                    Localisation Langues
-                                </span>
-                                <span className="sm:col-span-2 text-white text-sm leading-relaxed">
-                                    {project.category === 'game'
-                                        ? 'Support natif de 11 langues (Français, Anglais, Espagnol, Allemand, Italien, Portugais, Chinois Simplifié/Traditionnel, Japonais, Coréen, Russe)'
-                                        : 'Interface multilingue & traitement local indépendant de la langue'
-                                    }
-                                </span>
-                            </div>
-
+                                        <span className="absolute bottom-4 left-4 text-[11px] font-extrabold uppercase tracking-[0.3em] text-white">
+                                            Official trailer
+                                        </span>
+                                    </button>
+                                )
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={() => setLightbox(gallery[typeof active === 'number' ? active : 0])}
+                                    aria-label="Enlarge screenshot"
+                                    className={`group relative block h-full w-full ${focusRing}`}
+                                >
+                                    <img
+                                        src={gallery[typeof active === 'number' ? active : 0]}
+                                        alt={`${project.title} screenshot ${(typeof active === 'number' ? active : 0) + 1}`}
+                                        decoding="async"
+                                        className="h-full w-full object-cover"
+                                    />
+                                    <span className="absolute bottom-4 right-4 flex items-center gap-2 bg-black/80 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-white">
+                                        <Maximize2 className="h-4 w-4" aria-hidden="true" />
+                                        Enlarge
+                                    </span>
+                                </button>
+                            )}
                         </div>
-                    </div>
-                </div>
 
+                        {(videoId ? 1 : 0) + gallery.length > 1 && (
+                            <ul className="mt-4 flex snap-x gap-3 overflow-x-auto pb-2">
+                                {videoId && (
+                                    <li className="shrink-0 snap-start">
+                                        <button
+                                            type="button"
+                                            onClick={() => select('video')}
+                                            aria-pressed={active === 'video'}
+                                            aria-label="Trailer"
+                                            className={`relative block aspect-video w-32 overflow-hidden border-2 sm:w-40 ${focusRing} ${
+                                                active === 'video' ? 'border-studio-red' : 'border-white/10 opacity-60 hover:opacity-100'
+                                            }`}
+                                        >
+                                            <img src={poster} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                                            <span className="absolute inset-0 flex items-center justify-center bg-black/50">
+                                                <Play className="h-6 w-6 fill-white text-white" aria-hidden="true" />
+                                            </span>
+                                        </button>
+                                    </li>
+                                )}
+                                {gallery.map((src, i) => (
+                                    <li key={src} className="shrink-0 snap-start">
+                                        <button
+                                            type="button"
+                                            onClick={() => select(i)}
+                                            aria-pressed={active === i}
+                                            aria-label={`Screenshot ${i + 1}`}
+                                            className={`block aspect-video w-32 overflow-hidden border-2 sm:w-40 ${focusRing} ${
+                                                active === i ? 'border-studio-red' : 'border-white/10 opacity-60 hover:opacity-100'
+                                            }`}
+                                        >
+                                            <img src={src} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </section>
+                )}
+
+                {/* ---------- Présentation ---------- */}
+                <section className="grid gap-12 lg:grid-cols-12 lg:gap-16">
+                    <div className="lg:col-span-7">
+                        <SectionTitle title="About" />
+                        <p className="mt-8 text-lg leading-relaxed text-studio-text/90 md:text-xl">{project.description}</p>
+                    </div>
+
+                    <div className="lg:col-span-5">
+                        <SectionTitle title="Features" />
+                        <ul className="mt-8 space-y-4">
+                            {project.features.map((feature) => (
+                                <li key={feature} className="flex gap-4 text-base text-studio-text/90">
+                                    <span className="mt-2 h-2 w-2 shrink-0 bg-studio-red" aria-hidden="true" />
+                                    {feature}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </section>
+
+                {/* ---------- Fiche ---------- */}
+                <section>
+                    <SectionTitle title="Details" />
+                    <dl className="mt-8 divide-y divide-white/10 border-y border-white/10">
+                        {details
+                            .filter(([, value]) => value)
+                            .map(([label, value]) => (
+                                <div key={label} className="grid gap-1 py-5 sm:grid-cols-3 sm:gap-6">
+                                    <dt className="text-[11px] font-bold uppercase tracking-[0.3em] text-studio-muted">{label}</dt>
+                                    <dd className="text-base text-studio-text sm:col-span-2">{value}</dd>
+                                </div>
+                            ))}
+                    </dl>
+                </section>
+
+                {/* ---------- Appel final ---------- */}
+                <section className="flex flex-col gap-8 border border-white/10 bg-studio-card p-8 md:flex-row md:items-center md:justify-between md:p-12">
+                    <h2 className="text-3xl font-extrabold uppercase leading-none tracking-tight text-white md:text-5xl">
+                        {isGame ? 'Play' : 'Get'} {project.title}
+                    </h2>
+                    <StoreLinks project={project} />
+                </section>
             </div>
+
+            {/* Lightbox */}
+            <dialog
+                ref={dialogRef}
+                onClose={() => setLightbox(null)}
+                onClick={() => setLightbox(null)}
+                aria-label="Screenshot"
+                className="m-auto max-h-[92vh] max-w-[96vw] cursor-zoom-out border-0 bg-transparent p-0 backdrop:bg-black/90"
+            >
+                {lightbox && (
+                    <>
+                        <img src={lightbox} alt="" className="max-h-[92vh] max-w-[96vw] object-contain" />
+                        <button
+                            type="button"
+                            aria-label="Close"
+                            className="absolute right-3 top-3 bg-black/80 p-3 text-white hover:bg-studio-red"
+                        >
+                            <X className="h-5 w-5" aria-hidden="true" />
+                        </button>
+                    </>
+                )}
+            </dialog>
         </div>
     );
+};
+
+export const ProjectDetail: React.FC = () => {
+    const { id } = useParams<{ id: string }>();
+    const project = getProjectById(id ?? '');
+
+    if (!project) return <Navigate to="/" replace />;
+
+    // key : repart d'un état propre quand on passe d'un projet à l'autre
+    return <ProjectPage key={project.id} project={project} />;
 };
