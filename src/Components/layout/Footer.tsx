@@ -91,9 +91,20 @@ export const Footer: React.FC = () => {
 
                 <div className="mt-16 flex flex-col gap-4 border-t border-white/10 pt-6 text-xs text-studio-muted sm:flex-row sm:items-center sm:justify-between">
                     <p>© {new Date().getFullYear()} Chimene Studio. All rights reserved.</p>
-                    <Link to="/classicbibe/privacy" className="transition-colors hover:text-white">
-                        Classic Bibe privacy policy
-                    </Link>
+                    <nav aria-label="Legal" className="flex flex-wrap gap-x-6 gap-y-2">
+                        <Link to="/legal-notice" className="transition-colors hover:text-white">
+                            Legal notice
+                        </Link>
+                        <Link to="/privacy" className="transition-colors hover:text-white">
+                            Privacy policy
+                        </Link>
+                        <Link to="/orion-pdf/privacy" className="transition-colors hover:text-white">
+                            Orion PDF privacy
+                        </Link>
+                        <Link to="/classicbibe/privacy" className="transition-colors hover:text-white">
+                            Classic Bibe terms
+                        </Link>
+                    </nav>
                 </div>
             </div>
         </footer>

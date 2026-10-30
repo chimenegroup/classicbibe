@@ -8,6 +8,7 @@ interface SEOProps {
     url?: string;
     type?: 'website' | 'article' | 'game';
     keywords?: string;
+    noindex?: boolean;
 }
 
 export const SEO: React.FC<SEOProps> = ({
@@ -17,6 +18,7 @@ export const SEO: React.FC<SEOProps> = ({
                                             url = 'https://chimenestudio.com',
                                             type = 'website',
                                             keywords = 'Chimene Studio, indie games, party game, local multiplayer, Classic Bibe, Orion PDF',
+                                            noindex = false,
                                         }) => {
     const siteTitle = title.includes('Chimene Studio') ? title : `${title} | Chimene Studio`;
 
@@ -32,7 +34,7 @@ export const SEO: React.FC<SEOProps> = ({
             <link rel="canonical" href={url} />
 
             {/* Robots / Indexation */}
-            <meta name="robots" content="index, follow" />
+            <meta name="robots" content={noindex ? 'noindex, follow' : 'index, follow'} />
 
             {/* Open Graph / Facebook / Discord / LinkedIn / WhatsApp */}
             <meta property="og:locale" content="en_US" />
